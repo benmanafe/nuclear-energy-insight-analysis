@@ -1,0 +1,406 @@
+---
+title: "Is Nuclear Energy A Good Power Source for the Future?"
+author: "Valentino Julio Memah - 2702347111, Benjamin Eleazar Manafe - 2702340704,
+  Georgius Benedict Sungkharisma - 2702370303"
+date: "2024-06-16"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",  # Use '#>' for code comments
+  echo = FALSE,    # Hide code output
+  warning = FALSE
+)
+```
+
+
+```{r}
+library(tidyverse)
+library(plotly)
+```
+## 1. Introduction
+
+## IS NUCLEAR GENERATOR A GOOD SOURCE OF ELECTRICITY POWER? IF NOT, WHAT ARE SOME GOOD ALTERNATIVES?
+In this data set, we will be exploring a good source of power which we can use for a long time. The power source we will be exploring and analyzing will be Nuclear Power. Nuclear power is a form of energy production that harnesses the energy released from nuclear reactions. Nuclear power plants typically use fission to generate electricity. They are known for providing large amounts of continuous power and have low greenhouse gas emissions during operation. 
+
+For a step-by-step process on what will be done in this analysis, we will first explore which country will produce the most nuclear energy and see how much electricity is produced from them throughout the years on average.
+Secondly, we will see from those countries, what other source of power are they using which can be a good/viable alternative power source if Nuclear Energy isn't working.
+Finally, we will see the trend of Nuclear energy across 10 years which is a good time frame to analyze the rise and fall of it and see if it will hold up for use in the future.
+
+
+## 2.1 Data Summary
+### World Nuclear Generation
+Firstly, wee will see the top countries which uses Nuclear Energy and see their electricity generation and electricity share.
+```{r}
+world_nuclear_energy_generation <- read_csv("C:/Users/benma/BINUS Programming/Data Science/R/DMV AOL/Dataset/world_nuclear_energy_generation.csv")
+
+worldNuclearGeneration <- as.data.frame(world_nuclear_energy_generation)
+
+names(worldNuclearGeneration) <- gsub("[[:space:]+]", "_", names(worldNuclearGeneration))
+
+head(worldNuclearGeneration)
+```
+
+```{r}
+summary(worldNuclearGeneration)
+```
+
+```{r}
+str(worldNuclearGeneration)
+```
+
+## 3.1 Data Preprocessing Data Set
+### Missing Data Checking and Filling
+```{r}
+# Calculating sum of all missing data
+sum(is.na(worldNuclearGeneration))
+colSums(is.na(worldNuclearGeneration))
+```
+From the data shown above we can conclude that all of the mssing data from the 'World Nuclear Generation' dataset are in the 'share_of_electricity_pct' column. From this data, we decided to fill all this n/a value with 0 since we can't delete it or it will significantly alter the dataset and we can't fill it with mean value or it will also alter our dataset.
+
+```{r}
+# Fill all N/A values with 0
+worldNuclearGeneration[is.na(worldNuclearGeneration)] <- 0
+```
+
+```{r}
+sum(is.na(worldNuclearGeneration))
+colSums(is.na(worldNuclearGeneration))
+```
+
+### Duplicate Variables Checking
+```{r}
+# Checking for duplicates
+sum(duplicated(worldNuclearGeneration))
+```
+Here, we can see that there are no duplicate variables which means that we don't need to clean our data from any duplicate variables.
+
+
+## 4.1 Data Exploration
+```{r}
+meanPerCountry <- worldNuclearGeneration %>%
+  group_by(Entity) %>%
+  summarise(avgElectricityFromNuclear = mean(electricity_from_nuclear_twh),
+            avgElectricityShare = mean(share_of_electricity_pct))
+
+head(meanPerCountry)
+```
+### Average Electricity Generation and Share {.tabset}
+
+#### Electricity Generation
+```{r}
+topCountryEN <- meanPerCountry[order(-meanPerCountry$avgElectricityFromNuclear),]
+
+# Drop the 'avgElectricityShare' column
+topCountryEN <- select(topCountryEN, -avgElectricityShare)
+
+head(topCountryEN)
+```
+We want to calculate the top 5 countries with the most average electricty from nuclear generation and since the top 5 are not countries, we can drop them and redo the dataframe.
+
+
+```{r}
+topCountryEN <- topCountryEN[-(1:6),]
+
+head(topCountryEN)
+```
+Here we can see that United States, France, Russia, Japan and Germany are the countries with the most electricity from nuclear energy on average. There are more generation from each country but we want to see the top 5 from the whole country. Thus we pick those 5 as the top.
+
+##### 5.1.1 Statistical Analysis
+```{r}
+top5countryEN<- c("United States", "France", "Russia", "Japan", "Germany", "United States of America")
+selectedCountryEN <- topCountryEN[topCountryEN$Entity %in% top5countryEN,]
+selectedCountryEN <- selectedCountryEN[order(selectedCountryEN$avgElectricityFromNuclear),]
+plotEN <- plot_ly(selectedCountryEN, y = ~avgElectricityFromNuclear, x = ~reorder(Entity, avgElectricityFromNuclear))
+  
+plotEN <- plotEN %>%
+  layout(title = "Average Electricity From Nuclear from the Top 5 Countries",
+         xaxis = list(title = "Country"),
+         yaxis = list(title = "Electricity from Nuclear"))
+
+plotEN
+```
+
+Here we can see that the United States produced or used the most Nuclear Energy with a whopping 529 MW of energy on average through the years. It is then followed by France in 2nd, Russia in 3rd, Japan in 4th and Germany in 5th. We can see these are top countries which produced the most electricity power through Nuclear energy.
+
+
+#### Electricity Share
+```{r}
+topCountryES <- meanPerCountry[order(-meanPerCountry$avgElectricityShare),]
+
+topCountryES <- topCountryES[-(1:6),]
+
+head(topCountryES)
+```
+Here we can see that the top 5 countries with electical shares are Armenia, Sweden, Hungary, Switzerland, and Bulgaria.
+
+##### 5.1.2 Statistical Analysis
+```{r}
+top5countryES<- c("Armenia", "Sweden", "Hungary", "Switzerland", "Bulgaria")
+selectedCountryES <- topCountryES[topCountryES$Entity %in% top5countryES,]
+selectedCountryES <- selectedCountryES[order(selectedCountryES$avgElectricityShare),]
+plotES <- plot_ly(selectedCountryES, y = ~avgElectricityShare, x = ~reorder(Entity, avgElectricityShare))
+  
+plotES <- plotES %>%
+  layout(title = "Average Electricity Share from the Top 5 Countries",
+         xaxis = list(title = "Country"),
+         yaxis = list(title = "Electricity Share"))
+
+plotES
+```
+
+Here we can see that Armenia is the leading country which produced the most electricity share through the years and its followed by Sweden, then Hungary, then Switzerland, and finally Bulgaria.
+
+## 2.2 Data Summary
+### Global Nuclear Power Plant
+```{r}
+global_power_plant_database <- read_csv("C:/Users/benma/BINUS Programming/Data Science/R/DMV AOL/Dataset/global_power_plant_database.csv")
+
+globalPowerPlant <- as.data.frame(global_power_plant_database)
+
+# Remove Spaces for ease of column name calling
+names(globalPowerPlant) <- gsub("[[:space:]+]", "_", names(globalPowerPlant))
+
+head(globalPowerPlant)
+```
+After knowing the top 5 Countries for electricity share and electricity produced from nuclear energy, we can see what other power plant those countries used and see their electricity generation.
+
+```{r}
+summary(globalPowerPlant)
+```
+
+```{r}
+str(globalPowerPlant)
+```
+
+## 3.2 Data Preprocessing
+### Missing Data Variable and Filling
+```{r}
+sum(is.na(globalPowerPlant))
+colSums(is.na(globalPowerPlant))
+```
+From the data above, there seems to be a lot of missing data. But after looking at the missing data based on columns, we won't need to fix any of the mssing data since we won't need any of the missing data columns. The columns we will need are 'country', 'country_long', 'capacity_mw' and 'primary_fuel'.
+
+## 4.2 Data Exploration
+### Top Country Electricity Generation and Share {.tabset}
+
+#### Top Electricity Generation
+```{r}
+globalPowerPlantEN <- globalPowerPlant[globalPowerPlant$country_long %in% top5countryEN,]
+head(globalPowerPlantEN)
+```
+
+```{r}
+unique(globalPowerPlantEN$country)
+```
+
+##### 5.2.1 Statistical Analysis
+```{r}
+meanPerLongCountryEN <- globalPowerPlantEN %>%
+  group_by(country_long) %>%
+  summarise(longitude = mean(longitude),
+            latitude = mean(latitude),
+            electricGeneration = mean(capacity_mw),
+            countryCode = first(country))
+meanPerLongCountryEN
+```
+
+```{r}
+plot_ly(meanPerLongCountryEN, type = "choropleth", locations = meanPerLongCountryEN$countryCode, z = meanPerLongCountryEN$electricGeneration, text = meanPerLongCountryEN$country_long, colorscale = "Blues")
+```
+
+Here we can see the world map in an interactive plot where we can see the electricity generation with nuclear energy on the top 5 countries which produce the most nuclear energy. Here we can see that Japan and Russia is really similar in electric generation and US in 2nd, France in 3rd, and Germany in 4th.
+
+#### Top Electricity Share
+```{r}
+globalPowerPlantES <- globalPowerPlant[globalPowerPlant$country_long %in% top5countryES,]
+head(globalPowerPlantES)
+```
+
+##### 5.2.2 Statistical Analysis
+```{r}
+meanPerLongCountryES <- globalPowerPlantES %>%
+  group_by(country_long) %>%
+  summarise(longitude = mean(longitude),
+            latitude = mean(latitude),
+            electricGeneration = mean(capacity_mw),
+            countryCode = first(country))
+meanPerLongCountryES
+```
+
+```{r}
+plot_ly(meanPerLongCountryES, type = "choropleth", locations = meanPerLongCountryES$countryCode, z = meanPerLongCountryES$electricGeneration, text = meanPerLongCountryES$country_long, colorscale = "Blues")
+```
+
+Here we can see the world map in an interactive plot where we can see the electricity generation with nuclear energy on the top 5 countries which share the most nuclear energy. Here we can see that Armenia is 1st, then Hungary, then Bulgaria, then Sweden then Switzerland.
+
+### Main Source of Fuel for Top Countries with Most Electricity Generation
+```{r}
+modeCountryFuelEN <- globalPowerPlantEN %>%
+  group_by(country_long, primary_fuel) %>%
+  summarise(count = n(), .groups = "drop",
+            meanPower = mean(capacity_mw))
+head(modeCountryFuelEN)
+```
+
+
+```{r}
+n_distinct(modeCountryFuelEN$country_long)
+```
+
+```{r}
+plot_ly(modeCountryFuelEN,
+        x = ~primary_fuel, 
+        y = ~meanPower, 
+        color = ~country_long, 
+        type = "bar") %>%
+  layout(title = "Power of Each Fuel by each Country",
+         xaxis = list(title = "Fuel Type"),
+         yaxis = list(title = "Power"),
+         barmode = "stack")
+```
+
+Here we can see that from the top 5 countries that used the most nuclear energy power also has used nuclear energy as their main power source. Gas and Coal have a similar height in use while other pwer source are low in use. From this we can conclude that Nuclear energy is a good use of a power source and being Coal or Gas as an alternative.
+
+## 2.3 Data Summary
+### Nuclear Energy Overview over the Years
+```{r}
+nuclear_energy_overview_eia <- read_csv("C:/Users/benma/BINUS Programming/Data Science/R/DMV AOL/Dataset/nuclear_energy_overview_eia.csv")
+
+nuclearEnergyOV <- as.data.frame(nuclear_energy_overview_eia)
+
+names(nuclearEnergyOV) <- gsub("[[:space:]+]", "_", names(nuclearEnergyOV))
+
+head(nuclearEnergyOV)
+```
+
+```{r}
+summary(nuclearEnergyOV)
+```
+
+```{r}
+str(nuclearEnergyOV)
+```
+
+## 3.3 Data Preprocessing
+### Missing Data and Filling
+```{r}
+sum(is.na(nuclearEnergyOV))
+colSums(is.na(nuclearEnergyOV))
+```
+
+### Data Handling
+```{r}
+nuclearEnergyOV <- nuclearEnergyOV %>% filter(Year >= 2014)
+
+head(nuclearEnergyOV)
+```
+
+## 4.3 Data Exploration
+### Nuclear Generating Units
+```{r}
+summary(nuclearEnergyOV$Nuclear_Electricity_Net_Generation)
+nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units` <- as.numeric(nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`)
+
+summary(nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`)
+
+# Boxplot for Nuclear Electricity Generation
+boxplot(nuclearEnergyOV$Nuclear_Electricity_Net_Generation,
+        main = "Boxplot of Nuclear Electricity Net Generation",
+        ylab = "Net Generation")
+
+# Histogram for Nuclear Generating Units
+hist(nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`,
+     main = "Histogram of Nuclear Generating Units",
+     xlab = "Generating Units")
+```
+
+### Correlation between Total Electricity Generation and Total Generating Units
+```{r}
+cor(nuclearEnergyOV$Nuclear_Electricity_Net_Generation, nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`)
+
+# Scatter plot
+plot(nuclearEnergyOV$Nuclear_Electricity_Net_Generation, nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`,
+     main = "Scatter Plot of Net Generation vs Generating Units",
+     xlab = "Net Generation",
+     ylab = "Generating Units")
+```
+
+### Electicity Generation Over the Years
+```{r}
+nuclearElectricityGenerationPerYear <- nuclearEnergyOV %>%
+  group_by(Year) %>%
+  summarise(meanGeneration = mean(Nuclear_Electricity_Net_Generation))
+
+plot_ly(nuclearElectricityGenerationPerYear, x = ~Year, y = ~meanGeneration, type = "scatter", mode = "lines+markers") %>%
+  layout(title = "Electricity Generation using Nuclear Power Over the Years",
+         xaxis = list(title = "Year"),
+         yaxis = list(title = "Electricity Generation"))
+```
+
+From the graph above, we can see that the electricity produced by nuclear generators have an incline from 2014 - 2019 and after that had a major drop until 2022 and has only went up since 2023. We can assume that the drop was caused by the pandemic where most workers were asked to work hom or don't work. This caused nuclear generators to stop working or less working. Post COVID gives a good result where more generators seems to be working again.
+
+### Generator Units over the Years
+```{r}
+nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units` <- as.integer(nuclearEnergyOV$`Nuclear_Generating_Units,_Total_Operable_Units`)
+
+nuclearEnergyOperational <- nuclearEnergyOV %>%
+  group_by(Year) %>%
+  summarise(operationalUnits = mean(`Nuclear_Generating_Units,_Total_Operable_Units`))
+
+plot_ly(nuclearEnergyOperational, x = ~Year, y = ~operationalUnits, type = "scatter", mode = "lines+markers") %>%
+  layout(title = "Operational Nuclear Generator Units Over the Years",
+         xaxis = list(title = "Year"),
+         yaxis = list(title = "Operational Units"))
+```
+
+From the Graph shown, we can conclude that the operational nuclear generators also dropped from 2019 - 2022 since of COVID-19. There seems to be an incline in operational nuclear generators post COVID (2023-2024) where people can work more.
+
+## 5.3 Statistical Analysis
+### T-Test to find out if Electricity Drop is caused by COVID
+```{r}
+pre_covid <- subset(nuclearElectricityGenerationPerYear, Year < 2020)
+post_covid <- subset(nuclearElectricityGenerationPerYear, Year >= 2020)
+
+t.test(pre_covid$meanGeneration, post_covid$meanGeneration, alternative = "two.sided")
+```
+Based on the statistical analysis, there is evidence to suggest that there is a difference in power generation between the pre-COVID and post-COVID periods. The p-value (0.01877) indicates statistical significance, and the confidence interval does not include 0. Post-COVID generation appears to be lower than pre-COVID generation.
+
+### Correlation between Average Units and Average Power Generation over the Years
+```{r}
+combinedData <- merge(nuclearEnergyOperational, nuclearElectricityGenerationPerYear, by = "Year")
+
+# Create scatter plot with regression line
+plot_ly(combinedData, x = ~operationalUnits, y = ~meanGeneration, type = 'scatter', mode = 'markers') %>%
+  add_trace(
+    x = ~operationalUnits,
+    y = fitted(lm(meanGeneration ~ operationalUnits, data = combinedData)),
+    mode = 'lines',
+    name = 'Fit'
+  ) %>%
+  layout(title = "Correlation between Operational Units and Power Generation",
+         xaxis = list(title = "Operational Units"),
+         yaxis = list(title = "Electricity Generation"))
+
+correlation <- cor(combinedData$operationalUnits, combinedData$meanGeneration)
+
+correlation
+
+```
+1 = Strong Positive Correlation
+0 = No Positive Correlation
+-1 = Strong Negative Correlation
+
+According to the correlation calculation above we can conclude that number of operational units has a strong positive correlation with the average power electricity generation.
+
+## Discussion
+Based on our analysis we can see that Nuclear Energy has been used by most countries especially the top 5 countries on our analysis. We now know that the trend of the use of Nuclear Energy has been used most of the time before the pandemic, has dropped drastically during it and is trying to rise up again post pandemic. We also have additional info based on other source of fuel being gas and hydro as an alternative energy source if nuclear energy isn't working out. Coal and Oil are high up based on our findings but it isn't a good choice since those fuel source are limited. We should also increase our other fuel sources such as wind and solar fuel as they aren't limited fuel energy source.
+
+# Conclusion
+After this whole Analysis, we can conclude that Nuclear Energy is a good power source to use and is a good long term power source to use for the future. There seems to be an incline in Nuclear power use and more countries are using more as a source of power. This analysis can be researched further in the case of in the coming future or maybe in more specific areas around the world or maybe added more analysis surrounding nuclear energy.
+
+## References
+Data Set Link: [link](https://www.kaggle.com/datasets/alistairking/nuclear-energy-datasets)
