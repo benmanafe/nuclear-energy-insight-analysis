@@ -9,7 +9,7 @@ The project analyzes global trends in nuclear power generation and capacity to a
 
 Here is a summary of our key findings presented in an infographic:
 
-![Project Infographic](Group8_Infographic.jpg)
+![Project Infographic](Group8_Infographic.png)
 
 ## 👥 Team Members (Group 8)
 
